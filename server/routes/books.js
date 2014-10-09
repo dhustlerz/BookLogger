@@ -3,6 +3,17 @@ var fs = require('fs');
 var file = 'data/books.json';
 var router = express.Router();
 
+// example of using middleware
+//router.use(function(req, res, next) {
+//
+//    // log each request to the console
+//    console.log('Logging the request: ' + req.method, req.url);
+//
+//    // continue doing what we were doing and go to the route
+//    next();
+//});
+
+
 /* GET books listing. */
 router.get('/', function(req, res) {
 
