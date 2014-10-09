@@ -27,6 +27,7 @@ router.get('/', function(req, res) {
         data = JSON.parse(data);
         //console.log(JSON.stringify(data, null, 4));
         res.send(data);
+        //res.json(data);
     });
 });
 
