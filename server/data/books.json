@@ -1,0 +1,20 @@
+[
+    {
+        "book_id": 1,
+        "title": "Anna Karenina",
+        "author": "Leo Tolstoy",
+        "year_published": "1878"
+    },
+    {
+        "book_id": 2,
+        "title": "The Things They Carried",
+        "author": "Tim O'Brien",
+        "year_published": "1990"
+    },
+    {
+        "book_id": 3,
+        "title": "Invisible Man",
+        "author": "Ralph Ellison",
+        "year_published": "1952"
+    }
+]
