@@ -18,54 +18,37 @@ var router = express.Router();
 router.route('/')
     .get(function(req, res) {
 
-        fs.readFile(file, 'utf8', function(err, data) {
-
-            if (err) {
-                console.log('Error: ' + err);
-                res.send('error getting books');
-            }
-
-            data = JSON.parse(data);
-            //console.log(JSON.stringify(data, null, 4));
-            res.send(data);
-        });
+        var data = getBookData();
+        //console.log(JSON.stringify(data, null, 4));
+        res.send(data);
     })
 
     .post(function(req, res) {
 
-        console.log('POSTing something');
+        //console.log('POSTing something new');
 
-        fs.readFile(file, 'utf8', function (err, data) {
+        var data = getBookData();
+        var nextID = getNextAvailableID(data);
 
+        var newBook = {
+            book_id: nextID,
+            title: req.body.title,
+            author: req.body.author,
+            year_published: req.body.year_published
+        };
+
+        data.push(newBook);
+
+        var allBooks = JSON.stringify(data, null, 4);
+
+        fs.writeFile(file, allBooks, function (err) {
             if (err) {
-                console.log('Error: ' + err);
-                res.send('error getting books');
+                console.log(err);
             }
-
-            data = JSON.parse(data);
-            var nextID = getNextAvailableID(data);
-
-            var newBook = {
-                book_id: nextID,
-                title: req.body.title,
-                author: req.body.author,
-                year_published: req.body.year_published
-            };
-
-            data.push(newBook);
-
-            var allBooks = JSON.stringify(data, null, 4);
-
-            fs.writeFile(file, allBooks, function (err) {
-                if (err) {
-                    console.log(err);
-                }
-            });
-
-            res.set('Content-Type', 'application/json');
-            res.status(201).send(newBook);
-
         });
+
+        res.set('Content-Type', 'application/json');
+        res.status(201).send(newBook);
     });
 
 
@@ -73,17 +56,19 @@ router.route('/:id')
 
     .get(function(req, res) {
 
+        //console.log('Retrieving book id: ' + req.params.id);
+
         var data = getBookData();
 
-        var book = data.filter(function(item) {
-            if(item.book_id == req.params.id) {
-                return true;
-            } else {
-                return false;
-            }
+        var matchingBooks = data.filter(function(item) {
+            return item.book_id == req.params.id;
         });
 
-        res.send(book[0]);
+        if(matchingBooks.length === 0) {
+            res.sendStatus(404);
+        } else {
+            res.send(matchingBooks[0]);
+        }
     })
 
     .delete(function(req, res) {
