@@ -1,31 +1,16 @@
 var express = require('express');
 var fs = require('fs');
-var file = 'data/books.json';
+var datafile = 'server/data/books.json';
 var router = express.Router();
 
-// example of using middleware
-//router.use(function(req, res, next) {
-//
-//    // log each request to the console
-//    console.log('Logging the request: ' + req.method, req.url);
-//
-//    // continue doing what we were doing and go to the route
-//    next();
-//});
-
-
-/* GET books listing. */
+/* GET all books and POST new books */
 router.route('/')
     .get(function(req, res) {
-
         var data = getBookData();
-        //console.log(JSON.stringify(data, null, 4));
         res.send(data);
     })
 
     .post(function(req, res) {
-
-        //console.log('POSTing something new');
 
         var data = getBookData();
         var nextID = getNextAvailableID(data);
@@ -39,19 +24,14 @@ router.route('/')
 
         data.push(newBook);
 
-        var allBooks = JSON.stringify(data, null, 4);
+        saveBookData(data);
 
-        fs.writeFile(file, allBooks, function (err) {
-            if (err) {
-                console.log(err);
-            }
-        });
-
-        res.set('Content-Type', 'application/json');
+//        res.set('Content-Type', 'application/json');
         res.status(201).send(newBook);
     });
 
 
+/* GET, PUT and DELETE individual books */
 router.route('/:id')
 
     .get(function(req, res) {
@@ -73,33 +53,44 @@ router.route('/:id')
 
     .delete(function(req, res) {
 
-        console.log('deleting something with id ' + req.params.id);
-        var idtype = typeof req.params.id;
-        console.log('id type: ' + idtype);
-
         var data = getBookData();
 
         var pos = data.map(function(e) {
             return e.book_id;
         }).indexOf(parseInt(req.params.id, 10));
 
-        console.log('pos = ' + pos);
-
         if (pos > -1) {
             data.splice(pos, 1);
+        } else {
+            res.sendStatus(404);
         }
 
-        var allBooks = JSON.stringify(data, null, 4);
-
-        fs.writeFile(file, allBooks, function (err) {
-            if (err) {
-                console.log(err);
-            }
-        });
-
-
+        saveBookData(data);
         res.sendStatus(204);
 
+    })
+
+    .put(function(req, res) {
+
+        var data = getBookData();
+
+        var matchingBooks = data.filter(function(item) {
+            return item.book_id == req.params.id;
+        });
+
+        if(matchingBooks.length === 0) {
+            res.sendStatus(404);
+        } else {
+
+            var bookToUpdate = matchingBooks[0];
+            bookToUpdate.title = req.body.title;
+            bookToUpdate.author = req.body.author;
+            bookToUpdate.year_published = req.body.year_published;
+
+            saveBookData(data);
+            res.sendStatus(204);
+
+        }
     });
 
 function getNextAvailableID(allBooks) {
@@ -116,38 +107,19 @@ function getNextAvailableID(allBooks) {
 
     return ++maxID;
 
-};
+}
 
 function getBookData() {
-    var datafile = 'data/books.json';
     var data = fs.readFileSync(datafile, 'utf8');
     return JSON.parse(data);
-};
+}
 
-router.post('/:id', function(req, res) {
-
-    console.log('requested book id: ' + req.params.id);
-
-    fs.readFile(file, 'utf8', function(err, data) {
-
+function saveBookData(data) {
+    fs.writeFile(datafile, JSON.stringify(data, null, 4), function (err) {
         if (err) {
-            console.log('Error: ' + err);
-            res.send('error getting books');
+            console.log(err);
         }
-
-        data = JSON.parse(data);
-
-        var book = data.filter(function(item) {
-            if(item.book_id == req.params.id) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        res.send(book[0]);
     });
-});
-
+}
 
 module.exports = router;
