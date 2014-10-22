@@ -8,8 +8,6 @@
 
         var vm = this;
 
-        vm.greeting = 'Hello from the BooksController';
-
     }
 
 
